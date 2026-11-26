@@ -168,7 +168,7 @@ main{padding:46px 0 70px}
 .retreat .stamp small{font-size:12px;letter-spacing:.06em;text-transform:uppercase}
 
 /* Shop */
-.prod .swatch{aspect-ratio:4/3;border-radius:10px;background:var(--paper);border:1px solid var(--line);display:grid;place-items:center}
+.prod .swatch{aspect-ratio:4/3;overflow:hidden;border-radius:10px;background:var(--paper);border:1px solid var(--line);display:grid;place-items:center}
 .prod .price{font-family:var(--display);font-weight:800;font-size:22px}
 
 /* Forms */
@@ -811,7 +811,7 @@ const PERKS = [
 
 const MERCH = [
   {id:"stickers",name:"Hand-drawn sticker pack",status:"Last round sold out",price:"Next drop TBC",art:"sticker"},
-  {id:"socks",name:"Han's Hike Club hiking socks",status:"Limited first edition · 25 pairs",price:"£15",art:"socks",buy:CONFIG.kofiShop},
+  {id:"socks",name:"Han's Hike Club hiking socks",status:"Limited first edition · 25 pairs",price:"£15",art:"socks",photo:"photos/socks.jpg",photoAlt:"Green Han's Hike Club socks with the logo embroidered in gold",buy:CONFIG.kofiShop},
   {id:"tee",name:"Sticker back-print tee",status:"Coming soon",price:"Price TBC",art:"tee",sizes:["XS","S","M","L","XL","XXL"]}
 ];
 
@@ -907,7 +907,7 @@ const ART = {
 };
 function renderShop(){
   $("#shopList").innerHTML = MERCH.map(m=>`<article class="card prod" data-id="${m.id}">
-    <div class="swatch">${ART[m.art]}</div>
+    <div class="swatch">${m.photo?`<img src="${esc(m.photo)}" alt="${esc(m.photoAlt||m.name)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:center 40%;border-radius:10px">`:ART[m.art]}</div>
     <div class="when"><span class="kind">${esc(m.status)}</span><span class="price">${esc(m.price)}</span></div>
     <h3>${esc(m.name)}</h3>
     ${m.sizes?`<label for="sz-${m.id}">Size I'd want<select id="sz-${m.id}">${m.sizes.map(s=>`<option>${s}</option>`).join("")}</select></label>`:""}
