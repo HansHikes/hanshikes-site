@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Han&#39;s Hike Club</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: an OS-map sheet. Contour hero, yellow footpath waymarks as the accent, a sheet "legend" nav, cards like route cards. */
+:root{
+  --paper:#EEF0E7;
+  --sheet:#F8F9F3;
+  --ink:#18261E;
+  --moss:#2E5A43;
+  --waymark:#E9B200;
+  --line:#C9D0C0;
+  --muted:#56645A;
+  --contour:#B9A27A;
+  --contour-index:#9A7F52;
+  --ok:#2E7D4F; --warn:#B26A00; --bad:#A33A2E;
+  --display:"Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --hand:"Caveat", "Comic Sans MS", cursive;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#111814; --sheet:#18211C; --ink:#E6EBE2; --moss:#8CC4A2; --waymark:#F2C230;
+    --line:#2D3A32; --muted:#9AA79D; --contour:#3E4A3A; --contour-index:#5F6B4C;
+    --ok:#6CCB92; --warn:#E9A94A; --bad:#E48173; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#111814; --sheet:#18211C; --ink:#E6EBE2; --moss:#8CC4A2; --waymark:#F2C230;
+  --line:#2D3A32; --muted:#9AA79D; --contour:#3E4A3A; --contour-index:#5F6B4C;
+  --ok:#6CCB92; --warn:#E9A94A; --bad:#E48173; color-scheme: dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+.photo{display:block;width:100%;height:100%;object-fit:cover;border-radius:14px}
+.photo-band{display:grid;grid-template-columns:1.4fr .8fr 1.4fr;gap:14px;margin-top:40px;height:340px}
+.photo-band figure{margin:0;min-height:0}
+.ooo-hero{position:relative;border-radius:18px;overflow:hidden;min-height:380px;display:flex;align-items:flex-end;margin-bottom:34px}
+.ooo-hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ooo-hero::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(12,22,16,.88) 0%,rgba(12,22,16,.6) 45%,rgba(12,22,16,0) 75%)}
+.ooo-hero .inner{position:relative;z-index:2;padding:34px;max-width:640px;color:#F3F4EE}
+.stat{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:center;background:var(--sheet);border:1px solid var(--line);border-left:5px solid var(--bad);border-radius:12px;padding:12px 16px}
+.stat.good{border-left-color:var(--ok)}
+.stat b{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+@media (max-width:820px){.stat{grid-template-columns:1fr;gap:2px}}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+.ooo-hero h2{color:#F3F4EE}
+.ooo-hero .mark{color:#E9B200}
+.ooo-hero p{margin-top:12px;font-size:18px;color:#DDE3D8}
+.ooo-section{margin-top:54px}
+.ooo-section > h3{font-size:30px;margin-bottom:18px}
+.num{font-family:var(--display);font-weight:800;color:var(--waymark);font-size:15px;letter-spacing:.06em}
+.price-card{background:var(--ink);color:var(--paper);border-radius:14px;padding:26px;display:grid;gap:10px}
+.price-card .big{font-family:var(--display);font-weight:800;font-size:56px;line-height:1;letter-spacing:-.03em}
+.price-card .big small{font-size:20px;font-weight:700}
+.tiers{display:grid;gap:10px}
+.tier{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:baseline;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.tier b{font-family:var(--display);font-size:20px}
+.timeline{display:grid;gap:0;border-left:3px dashed var(--waymark);margin-left:8px}
+.timeline div{display:grid;grid-template-columns:70px 1fr;gap:12px;padding:10px 0 10px 18px;font-variant-numeric:tabular-nums}
+.timeline b{font-family:var(--display)}
+.touches{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.touches div{border:1.5px dashed var(--line);border-radius:12px;padding:14px}
+.touches b{display:block;font-family:var(--hand);font-size:24px;color:var(--moss);line-height:1.1;margin-bottom:4px}
+details.faq{background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
+details.faq summary{cursor:pointer;font-weight:700;font-size:17px}
+details.faq p{margin-top:10px;color:var(--muted)}
+.quote{font-size:20px;line-height:1.5;border-left:6px solid var(--waymark);padding:6px 0 6px 20px;max-width:62ch}
+.quote cite{display:block;margin-top:10px;font-style:normal;font-size:15px;color:var(--muted)}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:820px){.photo-band{grid-template-columns:1fr 1fr;height:auto}.photo-band figure{height:220px}.photo-band figure:last-child{grid-column:1/-1}.split{grid-template-columns:1fr}.tier{grid-template-columns:1fr}}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:22px}
+.choice{display:grid;gap:6px;text-align:left;font:16px/1.45 var(--body);color:var(--ink);background:var(--sheet);border:2px solid var(--line);border-radius:14px;padding:18px 20px;cursor:pointer}
+.choice b{font-family:var(--display);font-size:21px;letter-spacing:-.01em}
+.choice span{color:var(--muted)}
+.choice:hover{border-color:var(--moss)}
+.choice[aria-pressed="true"]{border-color:var(--moss);background:color-mix(in srgb,var(--moss) 10%,var(--sheet))}
+.choice .go{font-weight:700;color:var(--moss);font-size:15px}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:17px/1.55 var(--body);-webkit-font-smoothing:antialiased}
+a{color:var(--moss);text-underline-offset:3px}
+h1,h2,h3{font-family:var(--display);line-height:1.02;text-wrap:balance;margin:0}
+h2{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em}
+h3{font-size:22px;font-weight:700;letter-spacing:-.01em}
+p{margin:0}
+:focus-visible{outline:3px solid var(--waymark);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+
+/* Header + nav */
+header.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:18px;min-height:62px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:-.01em}
+.brand svg{flex:none}
+.logo-chip{display:inline-flex;align-items:center;background:#1F3328;border-radius:12px;padding:6px 12px}
+.logo-chip img{display:block;height:44px;width:auto}
+footer .logo-chip img{height:56px}
+nav.main{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+nav.main a{font-size:15px;text-decoration:none;color:var(--ink);padding:7px 11px;border-radius:999px;font-weight:700}
+nav.main a:hover{background:var(--sheet)}
+nav.main a[aria-current="page"]{background:var(--ink);color:var(--paper)}
+nav.main a.owner{border:1.5px dashed var(--moss);color:var(--moss)}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+.hero{background:#1F3328;color:#EEF0E7;border-bottom:none}
+.hero .hero-logo img{display:block;width:min(340px,78vw);height:auto}
+.hero .tagline{font-family:var(--hand);font-size:34px;line-height:1.1;color:#E9B200;margin-top:10px}
+.hero .lede{color:#D6DCD2}
+.hero .btn.ghost{color:#EEF0E7;border-color:#EEF0E7}
+.hero .facts{background:#26402F;border-color:#35523F;color:#EEF0E7}
+.hero .facts div span{color:#B9C4B8}
+.hero .facts .note{color:#E9B200;border-top-color:#35523F}
+.hero .wrap{position:relative;padding-top:64px;padding-bottom:56px;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:36px;align-items:end}
+.hero h1{font-size:clamp(46px,9vw,112px);font-weight:800;letter-spacing:-.045em;line-height:.88}
+.hero h1 .over{display:block;font-family:var(--hand);font-weight:600;font-size:.42em;letter-spacing:0;color:var(--moss);margin:.12em 0 .05em .1em;transform:rotate(-2deg);transform-origin:left}
+.hero .lede{margin-top:20px;max-width:34ch;font-size:19px}
+.hero .ctas{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+.facts{background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px 18px}
+.facts div b{display:block;font-family:var(--display);font-size:32px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.facts div span{font-size:14px;color:var(--muted)}
+.facts .note{grid-column:1/-1;font-family:var(--hand);font-size:22px;color:var(--moss);line-height:1.15;border-top:1px dashed var(--line);padding-top:12px}
+
+.btn{display:inline-flex;align-items:center;gap:8px;font:700 16px var(--body);padding:12px 18px;border-radius:999px;border:2px solid var(--ink);background:var(--ink);color:var(--paper);text-decoration:none;cursor:pointer}
+.btn:hover{transform:translateY(-1px)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.way{background:var(--waymark);border-color:var(--waymark);color:#1A1A10}
+.btn.small{padding:8px 13px;font-size:14px}
+.btn[disabled]{opacity:.5;cursor:not-allowed;transform:none}
+@media (prefers-reduced-motion: reduce){.btn:hover{transform:none}}
+
+/* Sections */
+main{padding:46px 0 70px}
+.view{display:none}
+.view.on{display:block}
+.head{display:flex;align-items:end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:24px}
+.head p{max-width:56ch;color:var(--muted);margin-top:10px}
+.mark{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.mark svg{flex:none}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.card .when{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.date{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.02em;text-transform:uppercase;color:var(--moss)}
+.pill{font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:999px;border:1.5px solid currentColor;white-space:nowrap}
+.pill.open{color:var(--ok)} .pill.soldout{color:var(--bad)} .pill.soon{color:var(--warn)} .pill.done{color:var(--muted)}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.meta span{display:inline-flex;align-items:center;gap:5px}
+.card .actions{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap;padding-top:4px}
+.kind{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.empty{border:1.5px dashed var(--line);border-radius:14px;padding:26px;color:var(--muted);text-align:center}
+
+/* feature band */
+.band{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:40px}
+.band .card{padding:24px}
+.band .card h3{font-size:26px}
+
+/* Retreat card */
+.retreat{display:grid;grid-template-columns:120px 1fr;gap:18px;align-items:start}
+.retreat .stamp{aspect-ratio:1;border-radius:50%;border:2px solid var(--moss);display:grid;place-items:center;text-align:center;font-family:var(--display);font-weight:800;color:var(--moss);line-height:1;padding:10px}
+.retreat .stamp b{display:block;font-size:30px}
+.retreat .stamp small{font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+
+/* Shop */
+.prod .swatch{aspect-ratio:4/3;border-radius:10px;background:var(--paper);border:1px solid var(--line);display:grid;place-items:center}
+.prod .price{font-family:var(--display);font-weight:800;font-size:22px}
+
+/* Forms */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.tabs button{font:700 15px var(--body);padding:9px 15px;border-radius:999px;border:1.5px solid var(--line);background:var(--sheet);color:var(--ink);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--moss);border-color:var(--moss);color:var(--paper)}
+form.box{background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:22px;display:grid;gap:14px;max-width:720px}
+label{font-weight:700;font-size:15px;display:grid;gap:6px}
+label small{font-weight:400;color:var(--muted)}
+input,textarea,select{font:16px var(--body);color:var(--ink);background:var(--paper);border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;width:100%}
+textarea{min-height:120px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.check{display:flex;gap:10px;align-items:center;font-weight:400}
+.check input{width:auto}
+.status{font-size:15px;padding:12px 14px;border-radius:10px;display:none}
+.status.show{display:block}
+.status.ok{background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.status.fallback{background:color-mix(in srgb,var(--waymark) 22%,transparent)}
+.status .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+
+/* How it works */
+.rules{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:22px;align-items:start}
+.note-card{background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:24px;display:grid;gap:14px}
+.note-card p{max-width:62ch}
+.note-card .sig{font-family:var(--hand);font-size:26px;color:var(--moss)}
+.terms{background:var(--sheet);border:1px solid var(--line);border-left:6px solid var(--waymark);border-radius:14px;padding:22px;display:grid;gap:14px}
+.terms ol{margin:0;padding-left:22px;display:grid;gap:10px}
+.terms li b{display:block}
+.refund{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.refund div{border-radius:10px;padding:12px;border:1.5px solid}
+.refund .y{border-color:var(--ok)} .refund .n{border-color:var(--bad)}
+.refund b{font-family:var(--display);font-size:18px}
+
+/* Follow */
+.follow{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.follow .card{flex-direction:row;align-items:center;gap:16px}
+.follow .ico{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;flex:none;background:var(--ink);color:var(--paper)}
+
+/* Owner tools */
+.inbox{display:grid;gap:10px}
+.msg{background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;gap:6px}
+.msg .top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.chip{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--paper);border:1px solid var(--line);color:var(--ink)}
+.chip.suggest{border-color:var(--moss)} .chip.collab{border-color:var(--waymark)} .chip.feedback{border-color:var(--warn)} .chip.merch{border-color:var(--bad)}
+.edit-list{display:grid;gap:8px}
+.edit-row{display:flex;gap:10px;align-items:center;justify-content:space-between;background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:10px 14px;flex-wrap:wrap}
+.edit-row .t{font-weight:700}
+.edit-row .s{font-size:14px;color:var(--muted)}
+
+footer{border-top:1px solid var(--line);padding:32px 0 46px;color:var(--muted);font-size:15px}
+footer .wrap{display:flex;gap:16px 28px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+footer nav{display:flex;gap:16px;flex-wrap:wrap}
+
+@media (max-width:820px){
+  .hero .wrap,.rules,.band,.follow{grid-template-columns:1fr}
+  .row2,.refund{grid-template-columns:1fr}
+  nav.main{margin-left:0}
+  .retreat{grid-template-columns:84px 1fr}
+  .retreat .stamp b{font-size:22px}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#home" aria-label="Han's Hike Club home">
+      <span class="logo-chip"><img src="logo.png" alt="Han's Hike Club" width="68" height="44"></span>
+    </a>
+    <nav class="main" id="nav" aria-label="Sections">
+      <a href="#hikes">Hikes</a>
+      <a href="#retreats">Retreats</a>
+      <a href="#past">Past hikes</a>
+      <a href="#perks">Member perks</a>
+      <a href="#shop">Merch</a>
+      <a href="#community">Community</a>
+      <a href="#out-of-office">Out of Office</a>
+      <a href="#how">How it works</a>
+      <a href="#say">Have your say</a>
+      <a href="#hans-tools" class="owner" id="ownerLink" hidden>Han's tools</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" id="hero">
+  <div class="wrap">
+    <div>
+      <h1 class="hero-logo"><img src="logo.png" alt="Han's Hike Club" width="270" height="174"></h1>
+      <p class="tagline">Connection over crowd</p>
+      <p class="lede">Small, friendly monthly hikes around the UK. Twenty people, long chatty walks, a village pub at the end, and minimal screen time.</p>
+      <div class="ctas">
+        <a class="btn way" href="#hikes">See upcoming hikes</a>
+        <a class="btn ghost" data-cfg-href="whatsapp" href="#community">Join the WhatsApp Community</a>
+      </div>
+    </div>
+    <div class="facts" aria-label="Club at a glance">
+      <div><b>20</b><span>people max per hike</span></div>
+      <div><b>£10</b><span>per hike + 20p booking fee, on CLIQ</span></div>
+      <div><b>100+</b><span>vetted members</span></div>
+      <div><b>Monthly</b><span>hikes since January 2024</span></div>
+      <p class="note">Started as my New Year's resolution. Now it's all of you. Han x</p>
+    </div>
+  </div>
+</section>
+
+<main>
+<div class="wrap">
+
+  <!-- HOME / HIKES -->
+  <section class="view" id="v-hikes" data-views="home hikes">
+    <div class="head">
+      <div>
+        <div class="mark"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8.5" fill="var(--waymark)"/><path d="M4.5 9.5h7L9 7M11.5 9.5 9 12" stroke="#1A1A10" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>Coming up</div>
+        <h2>Upcoming hikes</h2>
+        <p>Details always land in WhatsApp Announcements first. Book your place on CLIQ, then join that hike's spin-off group so you only get the info you need.</p>
+      </div>
+      <a class="btn small ghost" data-cfg-href="cliq" href="#">Book on CLIQ</a>
+    </div>
+    <div class="grid" id="upcomingList"></div>
+
+    <div class="band" data-only="home">
+      <div class="card">
+        <span class="kind">Instagram</span>
+        <h3>Han's Hike Club, Built with Me</h3>
+        <p>Photos and routes from every hike, plus my 60-day series building the club in public.</p>
+        <div class="actions"><a class="btn small" data-cfg-href="instagram" href="#">Follow <span data-cfg-text="instagramHandle"></span></a></div>
+      </div>
+      <div class="card">
+        <span class="kind">AllTrails</span>
+        <h3>Walk our routes any time</h3>
+        <p>Every route we've done is saved on AllTrails, so you can revisit a favourite or try one we did before you joined.</p>
+        <div class="actions"><a class="btn small" data-cfg-href="alltrails" href="#">2026 routes</a><a class="btn small ghost" data-cfg-href="alltrails2025" href="#">2025 routes</a></div>
+      </div>
+    </div>
+      <div class="photo-band" data-only="home" aria-label="Photos from our hikes">
+      <figure><img class="photo" src="photos/forest.jpg" alt="Hike Club members walking between tall trees in a sunlit forest" loading="lazy"></figure>
+      <figure><img class="photo" src="photos/han-tree.jpg" alt="Han looking up at a giant tree trunk" loading="lazy"></figure>
+      <figure><img class="photo" src="photos/ferns.jpg" alt="Members laughing together among the ferns" loading="lazy"></figure>
+    </div>
+  </section>
+
+  <!-- RETREATS -->
+  <section class="view" id="v-retreats" data-views="retreats">
+    <div class="head">
+      <div>
+        <div class="mark">Weekends away</div>
+        <h2>Retreats</h2>
+        <p>A few nights somewhere beautiful with a small group, with big walks and long evenings together. Members asked for more of these, so 2027 has more.</p>
+      </div>
+    </div>
+    <div class="grid" id="retreatList" style="grid-template-columns:repeat(auto-fill,minmax(420px,1fr))"></div>
+    <p style="margin-top:22px;color:var(--muted)">Got a place in mind for a retreat? <a href="#say" data-tab="suggest">Suggest it here</a>.</p>
+  </section>
+
+  <!-- PAST -->
+  <section class="view" id="v-past" data-views="past">
+    <div class="head">
+      <div>
+        <div class="mark">The logbook</div>
+        <h2>Past hikes</h2>
+        <p>Where we've been. Want to walk one again on your own? The routes are on AllTrails.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn small ghost" data-cfg-href="alltrails" href="#">2026 routes on AllTrails</a><a class="btn small ghost" data-cfg-href="alltrails2025" href="#">2025 routes on AllTrails</a></div>
+    </div>
+    <div class="grid" id="pastList"></div>
+  </section>
+
+  <!-- PERKS -->
+  <section class="view" id="v-perks" data-views="perks">
+    <div class="head">
+      <div>
+        <div class="mark">For members</div>
+        <h2>Member perks</h2>
+        <p>Small, kind brands who look after our members. Use the codes below at checkout.</p>
+      </div>
+    </div>
+    <div class="grid" id="perkList"></div>
+    <p style="margin-top:22px;color:var(--muted)">Run a small outdoors brand, or know one we should work with? <a href="#say" data-tab="collab">Introduce us</a>.</p>
+  </section>
+
+  <!-- SHOP -->
+  <section class="view" id="v-shop" data-views="shop">
+    <div class="head">
+      <div>
+        <div class="mark">Designed by Han</div>
+        <h2>Merch</h2>
+        <p>Every design starts as one of my hand-drawn stickers. Small runs only, so tap "Keep me posted" and you'll hear first when a drop opens.</p>
+      </div>
+    </div>
+    <div class="grid" id="shopList"></div>
+  </section>
+
+  <!-- COMMUNITY -->
+  <section class="view" id="v-community" data-views="community">
+    <div class="head">
+      <div>
+        <div class="mark">Where it all happens</div>
+        <h2>The WhatsApp Community</h2>
+        <p>One place for everything. Members are vetted to keep it a safe, friendly space.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><span class="kind">Announcements</span><h3>The important bit</h3><p>Every hike, retreat and perk is posted here first, with the booking link in the info message.</p></div>
+      <div class="card"><span class="kind">General chat</span><h3>Optional, outdoorsy, fun</h3><p>Mushroom pics, hike recommendations from abroad, gear questions, photos and ideas. If it involves fresh air or good vibes, it belongs here.</p></div>
+      <div class="card"><span class="kind">Hike groups</span><h3>One spin-off per hike</h3><p>Each monthly hike gets its own little group, so you only get the details if you're coming. No notification overload.</p></div>
+    </div>
+    <figure style="margin:24px 0 0;height:320px"><img class="photo" src="photos/ferns.jpg" alt="Members laughing together among the ferns" loading="lazy"></figure>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:24px">
+      <a class="btn way" data-cfg-href="whatsapp" href="#">Request to join the Community</a>
+      <a class="btn ghost" href="#how">Read how it works first</a>
+    </div>
+    <h2 style="margin-top:56px;font-size:32px">Follow along</h2>
+    <div class="follow" style="margin-top:18px">
+      <div class="card">
+        <div class="ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></div>
+        <div style="display:grid;gap:6px"><h3>Instagram</h3><p>Hike photos, routes and the Built with Me series.</p><a data-cfg-href="instagram" href="#"><span data-cfg-text="instagramHandle"></span></a></div>
+      </div>
+      <div class="card">
+        <div class="ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M2 20 9 7l4 7 3-4 6 10z"/></svg></div>
+        <div style="display:grid;gap:6px"><h3>AllTrails</h3><p>Every route we've walked, saved and ready to follow.</p><span style="display:flex;gap:14px;flex-wrap:wrap"><a data-cfg-href="alltrails" href="#">2026 routes</a><a data-cfg-href="alltrails2025" href="#">2025 routes</a></span></div>
+      </div>
+      <div class="card">
+        <div class="ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9.5" r="2.5"/><path d="M3 19c.6-3.3 3-5 6-5s5.4 1.7 6 5M15 14.6c2.6-.4 5 1 5.6 4.4"/></svg></div>
+        <div style="display:grid;gap:6px"><h3>CLIQ</h3><p>Our community page, where you can see what's coming up and book your place.</p><a data-cfg-href="cliq" href="#">Join us on CLIQ</a></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="view" id="v-how" data-views="how">
+    <div class="head">
+      <div>
+        <div class="mark">Values, rules and terms</div>
+        <h2>How Han's Hike Club works</h2>
+      </div>
+    </div>
+    <div class="rules">
+      <div class="note-card">
+        <h3>A quick note from me</h3>
+        <p>✨ Hikes are £10 (plus a 20p booking fee), booked on <a data-cfg-href="cliq" href="#">CLIQ</a>.</p>
+        <p>✨ I'm a lone soldier, so please be patient if info doesn't arrive at the click of a button.</p>
+        <p>✨ We "soft hike": lovely long walks (we don't have many mountains in the UK 🧗🏼).</p>
+        <p>🌳 The main group is for sharing anything outdoorsy, fun, recommendations, questions, photos or ideas. If it involves fresh air or good vibes, it belongs here.</p>
+        <p>📆 For each monthly hike I create a separate spin-off group, so you only get the info you need if you're coming along. No notification overload.</p>
+        <p>📍 All key hike details are always posted in the main group first. You join the hike using the link in the info message. Easy peasy 🍋</p>
+        <p>👥 Each hike is limited to 20 people. This keeps things friendly, chatty and connected, and stops us overwhelming tiny villages when we all descend on cafés and pubs at once.</p>
+        <p>🚕 I arrange carpooling where I can, to save the planet and make journeys easier.</p>
+        <p>☀️ The whole idea is connection over crowd. Meeting new people, having great conversations, and enjoying the outdoors together (with minimal screen time).</p>
+        <p class="sig">Han x</p>
+      </div>
+      <div class="terms" id="terms">
+        <h3>Terms and conditions</h3>
+        <div class="refund">
+          <div class="y"><b>Refund</b><p>If I cancel or move a hike, for weather or anything else, you get the £10 back (minus the 20p transaction fee).</p></div>
+          <div class="n"><b>No refund</b><p>If you can no longer make it, or don't turn up on the day.</p></div>
+        </div>
+        <ol>
+          <li><b>Booking and payment</b>Hikes are £10 plus a 20p booking fee (£10.20 in total), booked and paid for on CLIQ. The 20p covers the card processing fee from Stripe, which handles payments securely. Your place is confirmed once payment goes through, and each hike is capped at 20 people.</li>
+          <li><b>If I cancel or reschedule</b>If I cancel a hike for any reason, including bad weather, safety or illness, you'll get a 100% refund of the hike price, minus the 20p transaction fee, which Stripe doesn't return. If I move it to a new date, you can keep your place on the new date or take the same refund.</li>
+          <li><b>If you can't make it</b>Your £10.20 isn't refundable if you cancel or don't turn up, as it covers planning and bookings made for the group. You're welcome to give your place to a friend: just let me know at least 24 hours before so I can update the group and the pub booking.</li>
+          <li><b>Weather</b>We walk in most weather, so dress for it. If conditions are unsafe, such as storms, heavy snow or official weather warnings, I'll cancel and let everyone know in the hike group as early as I can, usually the day before.</li>
+          <li><b>Fitness and kit</b>Our hikes are soft hikes, but they're still 2 to 5 hours on uneven ground. Please check the distance and make sure it suits you. Wear proper walking shoes or boots, and bring water, snacks and layers. If you have anything I should know about to keep you safe, message me privately before the hike.</li>
+          <li><b>Taking part</b>You take part at your own risk and are responsible for your own belongings. Han's Hike Club holds public liability insurance. Nothing in these terms limits liability where the law doesn't allow it.</li>
+          <li><b>Travel and carpooling</b>You're responsible for getting to the start and home again. Train times are a guide, so please book your own tickets. Carpools are arranged between members as a favour, and it's fair to offer drivers a contribution towards fuel.</li>
+          <li><b>Food and drink</b>Coffee stops and pub lunches aren't included in the £10 and are paid for separately. If I ask for meal pre-orders, please send yours by the deadline.</li>
+          <li><b>Age</b>Hikes are for adults aged 18 and over, unless an event says otherwise, like our Bring a Parent hike.</li>
+          <li><b>Photos</b>I take photos on hikes to share on Instagram and in the Community. If you'd rather not appear, just tell me on the day and I'll leave you out.</li>
+          <li><b>Looking after each other</b>Be kind and inclusive, follow the Countryside Code, and leave every path, café and pub as you found it. Members are vetted, and I may remove anyone from a hike or the Community, without a refund, if they make it feel unsafe or unwelcoming.</li>
+          <li><b>Retreats</b>Retreats have their own booking terms, including deposits and payment dates, which I'll share when bookings open.</li>
+          <li><b>Changes to these terms</b>I may update these terms from time to time. The version on this page when you book is the one that applies.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- OUT OF OFFICE -->
+  <section class="view" id="v-out-of-office" data-views="out-of-office">
+    <div class="ooo-hero">
+      <img src="photos/forest.jpg" alt="A small group walking through a sunlit forest">
+      <div class="inner">
+        <div class="mark">Corporate hikes · Out of Office</div>
+        <h2>A day outside your team will actually thank you for</h2>
+        <p>Guided countryside hikes for office and fully remote teams, organised from start point to pub lunch. Your team simply turns up and walks.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px"><a class="btn way" href="#enquire" data-jump="f-corporate">Plan your team's day</a></div>
+      </div>
+    </div>
+
+    <div class="split">
+      <div style="display:grid;gap:14px">
+        <h3 style="font-size:30px">Everyone leaves feeling seen, heard and connected</h3>
+        <p>Out of the office, without job titles, screens or meeting agendas, people show up as themselves. Colleagues get to know the person behind the Slack name: their stories, their humour, what they care about.</p>
+        <p>Small groups, unhurried routes and easy conversation. Connection over crowd, and no forced icebreakers.</p>
+      </div>
+      <blockquote class="quote" style="margin:0">Han hosted 25 of our community on the Lullingstone Circular, and it was seamless from start to finish: a direct train from Waterloo, a beautiful 10 km route, and a litter pick along the way. People came away feeling connected and recharged.<cite>Charlie Rogers, Founder, Undefinable Life Design</cite></blockquote>
+    </div>
+
+    <div class="ooo-section">
+      <h3>Why teams book us</h3>
+      <div class="grid4">
+        <div class="card"><span class="num">01</span><h3>Zero admin for HR</h3><p>Route, travel, timings, pub pre-orders and risk assessments are all handled for you.</p></div>
+        <div class="card"><span class="num">02</span><h3>Team building that works</h3><p>Walking side by side builds trust, breaks down silos and connects colleagues across teams.</p></div>
+        <div class="card"><span class="num">03</span><h3>Employee wellbeing</h3><p>Green space and a screen-free day to reset and recharge, within easy reach of London.</p></div>
+        <div class="card"><span class="num">04</span><h3>Inclusive for everyone</h3><p>Routes tailored to your team's abilities, with shorter options built in, so everyone can take part.</p></div>
+      </div>
+    </div>
+
+    <div class="ooo-section">
+      <h3>Too much screen, not enough sky</h3>
+      <div class="split">
+        <div style="display:grid;gap:10px">
+          <span class="kind">The problem</span>
+          <div class="stat"><b>40%</b><span>of UK office workers have felt lonely at work, despite being surrounded by colleagues</span></div>
+          <div class="stat"><b>7h 24m</b><span>a day the average Brit spends on screens, from phones and laptops to the TV</span></div>
+          <div class="stat"><b>83%</b><span>of UK office workers worry they spend too much of their life indoors</span></div>
+        </div>
+        <div style="display:grid;gap:10px">
+          <span class="kind">What helps</span>
+          <div class="stat good"><b>120 min</b><span>a week in nature is linked to better health and wellbeing</span></div>
+          <div class="stat good"><b>60%</b><span>average boost in creative thinking while walking, compared with sitting</span></div>
+          <div class="stat good"><b>49%</b><span>of UK office workers would be more likely to stay in a job that gave time off for nature or volunteering</span></div>
+        </div>
+      </div>
+      <p style="margin-top:14px;font-size:13.5px;color:var(--muted)">Sources: Kahoot! Workplace Culture and Connection Report 2026 (survey of 2,000 UK office workers) · IPA TouchPoints 2026 · Ecotone survey of 2,000 UK office workers, 2026 · White et al., Scientific Reports, 2019 · Oppezzo and Schwartz, Stanford University, 2014.</p>
+    </div>
+
+    <div class="ooo-section split">
+      <div class="price-card">
+        <span class="kind" style="color:#E9B200">Full Day Hike</span>
+        <div class="big">£65 <small>per person</small></div>
+        <p>10am to 5pm · 7 to 10 km. A guided countryside hike with a coffee stop, a booked pub lunch and a slower afternoon, so there's real time to talk.</p>
+        <p style="color:#B9C4B8;font-size:15px">Minimum fee £850. Weekday and weekend dates. Food and drink are paid on the day or added to your invoice at cost.</p>
+      </div>
+      <div class="tiers">
+        <div class="tier"><b>Up to 13</b><span>Small team: a cosy, private group. The £850 minimum fee applies.</span></div>
+        <div class="tier"><b>14 to 20</b><span>One group: one walking group hosted by Han, at the per-person price.</span></div>
+        <div class="tier"><b>21 to 40</b><span>Department: two hosted groups with staggered starts, meeting in a private space for lunch.</span></div>
+        <p style="color:var(--muted);font-size:15px">Every walking group stays at 20 people or fewer, so villages and pubs are never overwhelmed.</p>
+      </div>
+    </div>
+
+    <div class="ooo-section split">
+      <div>
+        <h3 style="font-size:30px;margin-bottom:18px">What's included</h3>
+        <ul style="margin:0;padding-left:20px;display:grid;gap:8px">
+          <li>A route chosen for your team, with a shorter option built in</li>
+          <li>A pre-hike call, plus a joining pack covering travel, kit and timings</li>
+          <li>Toilet and coffee stops, and a booked, pre-ordered pub lunch</li>
+          <li>Hosting by Han, with light, optional conversation prompts</li>
+          <li>A written risk assessment for every route, weather monitoring and a first aid kit</li>
+          <li>A follow-up with the route to walk again, shared with your team</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="font-size:30px;margin-bottom:6px">A sample day</h3>
+        <p style="color:var(--muted);margin-bottom:14px">Shere and the North Downs, Surrey Hills · about 9 km and 4 hours including stops</p>
+        <div class="timeline">
+          <div><b>08:20</b><span>Train from London Paddington, changing at Reading (or private coach)</span></div>
+          <div><b>10:00</b><span>Meet at The Gomshall Mill: welcome, route briefing, coffee and toilet stop</span></div>
+          <div><b>11:15</b><span>Shere village stop and a wander round the local woodwork shop</span></div>
+          <div><b>12:00</b><span>Up onto the North Downs for the views</span></div>
+          <div><b>14:30</b><span>Finish and pub lunch at The Gomshall Mill</span></div>
+          <div><b>16:30</b><span>Head home</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ooo-section">
+      <h3>Little human touches</h3>
+      <div class="touches">
+        <div><b>A handwritten welcome note</b>Waiting for each person at the start.</div>
+        <div><b>Walk-and-talk cards</b>Gentle prompts so people swap walking partners.</div>
+        <div><b>Positive gossip cards</b>Kind words about a colleague, shared at lunch.</div>
+        <div><b>A treat at the top</b>Shared at the best viewpoint of the day.</div>
+        <div><b>Wildflower seeds</b>Something to grow from today.</div>
+        <div><b>A thank-you card</b>With a hand-drawn sketch of the route.</div>
+      </div>
+    </div>
+
+    <div class="ooo-section">
+      <h3>Make the day your own</h3>
+      <div class="grid4">
+        <div class="card"><span class="kind">From £20 pp</span><h3>Sound bath</h3><p>A practitioner leads a deeply relaxing session before or after the walk.</p></div>
+        <div class="card"><span class="kind">From £20 pp</span><h3>Qi gong or gentle stretch</h3><p>A short outdoor session to open and close the day.</p></div>
+        <div class="card"><span class="kind">From £40 pp</span><h3>Guided foraging</h3><p>From August to October, a local forager joins to find and taste wild food.</p></div>
+        <div class="card"><span class="kind">From £400</span><h3>Professional photography</h3><p>A full photo set from the day for your internal comms.</p></div>
+      </div>
+      <p style="margin-top:14px;color:var(--muted)">Travel sorted too: we can arrange a private coach from your office or book your team's train tickets, quoted on request. Prices are confirmed in your quote, as they depend on group size, location and date.</p>
+    </div>
+
+    <div class="ooo-section">
+      <h3>Booking in four steps</h3>
+      <div class="grid4">
+        <div class="card"><span class="num">01</span><h3>Enquire</h3><p>Share dates, team size, fitness range and what you'd like the day to achieve.</p></div>
+        <div class="card"><span class="num">02</span><h3>Quote</h3><p>A proposed route, itinerary and itemised quote within 3 working days.</p></div>
+        <div class="card"><span class="num">03</span><h3>Confirm</h3><p>A 25% deposit secures your date. The balance is due 14 days before.</p></div>
+        <div class="card"><span class="num">04</span><h3>Final numbers</h3><p>Confirm numbers and dietary needs 10 days before. Up to 10% fewer at no charge.</p></div>
+      </div>
+      <div class="terms" style="margin-top:18px">
+        <p><b>Cancellation:</b> the 25% deposit is non-refundable, and cancelling within 14 days is charged in full, though we'll always try to move your date instead.</p>
+        <p><b>Weather:</b> we walk in most weather and adjust the route if needed. If it's unsafe, we reschedule at no extra cost.</p>
+        <p><b>Leave it better (optional):</b> instead of a tip, we invite teams to give 5% of their booking to The Wildlife Trusts, who care for the land we walk on. Donations go straight to the charity.</p>
+        <p><b>Dogs are welcome:</b> well-behaved pups only, on a lead near livestock, and their humans bring the poo bags.</p>
+      </div>
+    </div>
+
+    <div class="ooo-section">
+      <h3>Good questions</h3>
+      <div style="display:grid;gap:10px;max-width:820px">
+        <details class="faq"><summary>How fit does my team need to be?</summary><p>Not very. We choose a route for your group's fitness, with a shorter option built in that we can switch to on the day. As long as your team can walk for at least 3 hours, they're good to go.</p></details>
+        <details class="faq"><summary>What if it rains?</summary><p>We walk in most weather and adjust the route if needed. If conditions are unsafe, we reschedule at no extra cost.</p></details>
+        <details class="faq"><summary>What should people wear and bring?</summary><p>Comfortable footwear with grip and a waterproof layer. Everyone gets a joining pack with a full kit list.</p></details>
+        <details class="faq"><summary>How far from London are the routes?</summary><p>Usually around an hour to an hour and a half by train.</p></details>
+        <details class="faq"><summary>Can you cater for dietary needs?</summary><p>Yes. We pre-order lunch with the pub, so just share dietary needs 10 days before the hike.</p></details>
+        <details class="faq"><summary>Our team is fully remote. Does that work?</summary><p>Perfectly. Everyone meets at the start point, and it's often the first time people meet in person.</p></details>
+        <details class="faq"><summary>What's included in the price?</summary><p>Planning, hosting, the route, pub booking and pre-order management, the joining pack and all the little touches. Food, drink and travel are extra.</p></details>
+        <details class="faq"><summary>Are you insured?</summary><p>Yes. Han's Hike Club Ltd is a registered company with public liability insurance, and every hike has its own written risk assessment.</p></details>
+      </div>
+    </div>
+
+    <div class="ooo-section split" id="enquire">
+      <div style="display:grid;gap:14px">
+        <h3 style="font-size:30px">Let's plan your day</h3>
+        <p>Share your dates and team size, and I'll come back with a route, itinerary and quote within 3 working days.</p>
+        <p>Prefer email? <a data-cfg-href="mailto" href="#"><span data-cfg-text="email"></span></a></p>
+        <p style="font-family:var(--hand);font-size:28px;color:var(--moss)">See you on the hill, Han x</p>
+        <figure style="margin:0;height:300px"><img class="photo" src="photos/han-tree.jpg" alt="Han looking up at a giant tree" loading="lazy" style="object-position:center 30%"></figure>
+      </div>
+      <form class="box" id="f-corporate" data-type="corporate" style="max-width:none">
+        <div class="row2">
+          <label for="co-org">Company<input id="co-org" name="where" required autocomplete="organization"></label>
+          <label for="co-size">Team size
+            <select id="co-size" name="kind"><option>Up to 13</option><option>14 to 20</option><option>21 to 40</option><option>More than 40</option><option>Not sure yet</option></select>
+          </label>
+        </div>
+        <label for="co-dates">Preferred dates <small>A few options helps</small><input id="co-dates" name="link" placeholder="e.g. a Thursday in late April"></label>
+        <label for="co-msg">What would you like the day to achieve? <small>Fitness range, add-ons, anything else</small><textarea id="co-msg" name="message" required></textarea></label>
+        <div class="row2">
+          <label for="co-name">Your name<input id="co-name" name="name" required autocomplete="name"></label>
+          <label for="co-email">Work email<input id="co-email" name="contact" type="email" required autocomplete="email"></label>
+        </div>
+        <div><button class="btn way" type="submit">Send enquiry</button></div>
+        <div class="status" role="status"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- HAVE YOUR SAY -->
+  <section class="view" id="v-say" data-views="say">
+    <div class="head">
+      <div>
+        <div class="mark">Your ideas shape the club</div>
+        <h2>Have your say</h2>
+        <p>Members suggested the price change and asked for more retreats, and both happened. Tell me what you'd love next.</p>
+      </div>
+    </div>
+    <div class="choices" role="group" aria-label="What would you like to send?">
+      <button type="button" class="choice" id="ch-suggest" data-form="suggest" aria-pressed="false"><b>Suggest a hike or retreat</b><span>A place, a trail or a weekend away you'd love us to do together.</span><span class="go">Open the form</span></button>
+      <button type="button" class="choice" id="ch-collab" data-form="collab" aria-pressed="false"><b>Collab or introduction</b><span>Brands, venues, team wellbeing hikes, or someone I should meet.</span><span class="go">Open the form</span></button>
+      <button type="button" class="choice" id="ch-feedback" data-form="feedback" aria-pressed="false"><b>Give feedback</b><span>Tell me what to keep, change or try. You can stay anonymous.</span><span class="go">Open the form</span></button>
+    </div>
+
+    <form class="box" id="f-suggest" data-type="suggest" hidden>
+      <div class="row2">
+        <label for="s-kind">This is an idea for
+          <select id="s-kind" name="kind"><option>A hike</option><option>A retreat</option><option>A social / something else</option></select>
+        </label>
+        <label for="s-where">Where? <small>Place, trail or region</small>
+          <input id="s-where" name="where" placeholder="e.g. Seven Sisters, South Downs">
+        </label>
+      </div>
+      <label for="s-idea">Tell me about it <small>Why you love it, links, best time of year</small>
+        <textarea id="s-idea" name="message" required></textarea>
+      </label>
+      <div class="row2">
+        <label for="s-name">Your name <small>Optional</small><input id="s-name" name="name" autocomplete="name"></label>
+        <label for="s-contact">How can I reach you? <small>Optional</small><input id="s-contact" name="contact" placeholder="Phone, email or Instagram"></label>
+      </div>
+      <div><button class="btn" type="submit">Send my idea</button></div>
+      <div class="status" role="status"></div>
+    </form>
+
+    <form class="box" id="f-collab" data-type="collab" hidden>
+      <label for="c-kind">What kind of collab?
+        <select id="c-kind" name="kind"><option>A brand or product partnership</option><option>Corporate or team wellbeing hike</option><option>A venue, café or pub</option><option>An introduction to someone</option><option>Something else</option></select>
+      </label>
+      <div class="row2">
+        <label for="c-org">Business or person <small>Who is it?</small><input id="c-org" name="where"></label>
+        <label for="c-link">Website or Instagram <small>Optional</small><input id="c-link" name="link"></label>
+      </div>
+      <label for="c-idea">The idea <small>What would it look like for our members?</small>
+        <textarea id="c-idea" name="message" required></textarea>
+      </label>
+      <div class="row2">
+        <label for="c-name">Your name<input id="c-name" name="name" autocomplete="name" required></label>
+        <label for="c-contact">How can I reach you?<input id="c-contact" name="contact" required placeholder="Email or phone"></label>
+      </div>
+      <div><button class="btn" type="submit">Send collab idea</button></div>
+      <div class="status" role="status"></div>
+    </form>
+
+    <form class="box" id="f-feedback" data-type="feedback" hidden>
+      <label for="fb-hike">Which hike or retreat? <small>Optional</small><input id="fb-hike" name="where" placeholder="e.g. October Wales retreat"></label>
+      <label for="fb-rate">How was it overall?
+        <select id="fb-rate" name="kind"><option>Loved it</option><option>Really good</option><option>It was OK</option><option>Not for me this time</option></select>
+      </label>
+      <label for="fb-msg">What should I keep, change or try? <small>Honest is helpful</small>
+        <textarea id="fb-msg" name="message" required></textarea>
+      </label>
+      <label class="check" for="fb-anon"><input type="checkbox" id="fb-anon" name="anon" checked> Send anonymously</label>
+      <label for="fb-name" id="fb-name-wrap" hidden>Your name<input id="fb-name" name="name" autocomplete="name"></label>
+      <div><button class="btn" type="submit">Send feedback</button></div>
+      <div class="status" role="status"></div>
+    </form>
+  </section>
+
+  <!-- OWNER TOOLS -->
+  <section class="view" id="v-hans-tools" data-views="hans-tools">
+    <div class="head">
+      <div>
+        <div class="mark">Only you can see this</div>
+        <h2>Han's tools</h2>
+        <p>Your inbox of ideas, collabs, feedback and merch interest, and the hikes shown on the site. Hikes move to Past automatically once their date has gone.</p>
+      </div>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Owner tools">
+      <button role="tab" id="otab-inbox" aria-selected="true" data-otab="inbox">Inbox</button>
+      <button role="tab" id="otab-hikes" aria-selected="false" data-otab="hikes">Hikes and retreats</button>
+    </div>
+    <div id="o-inbox">
+      <div class="tabs" id="inboxFilter" aria-label="Filter inbox">
+        <button aria-selected="true" data-f="all">All</button>
+        <button aria-selected="false" data-f="suggest">Ideas</button>
+        <button aria-selected="false" data-f="collab">Collabs</button>
+        <button aria-selected="false" data-f="feedback">Feedback</button>
+        <button aria-selected="false" data-f="merch">Merch interest</button>
+      </div>
+      <div class="inbox" id="inboxList"><div class="empty">Loading your inbox…</div></div>
+    </div>
+    <div id="o-hikes" hidden>
+      <div class="edit-list" id="editList"></div>
+      <form class="box" id="hikeForm" style="margin-top:20px;max-width:none">
+        <h3 id="hikeFormTitle">Add a hike or retreat</h3>
+        <input type="hidden" id="h-id">
+        <div class="row2">
+          <label for="h-title">Title<input id="h-title" required placeholder="e.g. Box Hill & the Stepping Stones"></label>
+          <label for="h-kind">Type<select id="h-kind"><option value="hike">Hike</option><option value="retreat">Retreat</option><option value="social">Social</option></select></label>
+        </div>
+        <div class="row2">
+          <label for="h-date">Date <small>Used for ordering and moving to Past</small><input id="h-date" type="date" required></label>
+          <label for="h-label">Date label <small>Optional, e.g. "30 Apr – 3 May 2027"</small><input id="h-label"></label>
+        </div>
+        <div class="row2">
+          <label for="h-place">Where<input id="h-place" placeholder="e.g. Surrey Hills"></label>
+          <label for="h-status">Status<select id="h-status"><option value="open">Booking open</option><option value="soon">Details soon</option><option value="soldout">Sold out</option></select></label>
+        </div>
+        <div class="row2">
+          <label for="h-dist">Distance (km) <small>Optional</small><input id="h-dist" inputmode="decimal"></label>
+          <label for="h-price">Price <small>e.g. £10 + 20p fee</small><input id="h-price"></label>
+        </div>
+        <div class="row2">
+          <label for="h-book">Booking link <small>Leave blank to use CLIQ (Ko-fi for 2026 dates)</small><input id="h-book" type="url"></label>
+          <label for="h-trail">AllTrails route link <small>Optional</small><input id="h-trail" type="url"></label>
+        </div>
+        <label for="h-note">Description<textarea id="h-note" style="min-height:90px"></textarea></label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" type="submit" id="h-save">Save to site</button><button class="btn ghost" type="button" id="h-reset">Clear form</button></div>
+        <div class="status" role="status" id="h-status-msg"></div>
+      </form>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap"><span class="logo-chip"><img src="logo.png" alt="Han's Hike Club" width="87" height="56"></span><span>© Han's Hike Club Ltd · Connection over crowd</span></div>
+    <nav aria-label="Footer">
+      <a data-cfg-href="instagram" href="#">Instagram</a>
+      <a data-cfg-href="alltrails" href="#">AllTrails</a>
+      <a data-cfg-href="cliq" href="#">CLIQ</a>
+      <a data-cfg-href="linkedin" href="#">LinkedIn</a>
+      <a href="#out-of-office">Corporate hikes</a>
+      <a href="#how">Terms</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+/* ---------- Edit these links ---------- */
+const CONFIG = {
+  kofi: "https://ko-fi.com/hanshikeclub",
+  kofiShop: "https://ko-fi.com/hanshikeclub/shop",   // still used for 2026 events
+  cliq: "https://hans-hike-club.thecliq.app/",   // used for every booking from 2027
+  instagram: "https://www.instagram.com/hanshikeclub/",
+  instagramHandle: "@hanshikeclub",
+  alltrails: "https://www.alltrails.com/en-gb/lists/han-s-hikes-2026-16cbe59",
+  alltrails2025: "https://www.alltrails.com/en-gb/lists/han-s-hikes-2025-9ee70b7",
+  whatsapp: "https://chat.whatsapp.com/Lc6syrDiEx76YLq0UqfHuf",
+  linkedin: "https://www.linkedin.com/",
+  email: "hello@hanshikes.com",
+  mailto: "mailto:hello@hanshikes.com",
+  web3formsKey: "e82807cb-123d-48c2-b64e-32f597e30640"
+};
+
+/* Starting content, shown until you save hikes from Han's tools */
+const DEFAULT_HIKES = [
+  {id:"xmas26",kind:"social",title:"Christmas pot luck & HHC awards",date:"2026-12-15",place:"House of Transformation",status:"open",price:"£10pp",note:"Bring a dish to share. The £10 covers the hire. We'll celebrate the year with the first Han's Hike Club awards."},
+  {id:"jan27",kind:"hike",title:"Qi Gong Hike with Common Nature",date:"2027-01-16",place:"Location TBC",status:"soon",price:"£10 + 20p fee",note:"Start the year with a hike and qi gong, together with Common Nature. Route and booking link go out in WhatsApp Announcements first. Twenty places."},
+  {id:"feb27",kind:"hike",title:"Han's Birthday Hike with a Sauna Ending",date:"2027-02-20",place:"Location TBC",status:"soon",price:"£10 + 20p fee",note:"Come and celebrate Han's birthday on the trail, then warm up in a sauna at the end."},
+  {id:"mar27",kind:"hike",title:"Bring a Parent Hike",date:"2027-03-14",place:"Location TBC",status:"soon",price:"£10 + 20p fee",note:"Bring your mum, dad or a parent figure along for a walk and a good chat."},
+  {id:"apr27",kind:"hike",title:"Hike with a Sound Bath by Alune",date:"2027-04-11",place:"Location TBC",status:"soon",price:"£10 + 20p fee",note:"A hike that slows right down with a sound bath from Alune."},
+  {id:"dartmoor27",kind:"retreat",title:"Dartmoor retreat",date:"2027-04-30",label:"30 Apr – 3 May 2027",place:"Dartmoor National Park",status:"soon",note:"May Bank Holiday weekend away for a mixed group."},
+  {id:"girls27",kind:"retreat",title:"Girls-only retreat",date:"2027-09-30",label:"2027 · dates TBC",place:"Location TBC",status:"soon",note:"Our second women's retreat, after Wales sold out. Tell me where you'd love to go."},
+  {id:"jan25",kind:"hike",title:"Lullingstone Circular",date:"2025-01-18",place:"Lullingstone Country Park, Kent",dist:"10.8",trail:"https://www.alltrails.com/en-gb/trail/england/kent/lullingstone-circular",note:"About 3.5 hours through the Darent Valley, finishing with lunch at The Bo Peep."},
+  {id:"feb25",kind:"hike",title:"Kintbury Woodland & Kennet and Avon Canal Circular",date:"2025-02-09",place:"Kintbury, Berkshire",dist:"13.5",trail:"https://www.alltrails.com/en-gb/trail/england/berkshire/kintbury-woodland-and-canal-loop",note:"About 4 hours of woodland and canal towpath, finishing with lunch at The Dundas Arms."},
+  {id:"mar25",kind:"hike",title:"Box Hill & Mickleham Circular",date:"2025-03-15",place:"Box Hill, Surrey",dist:"6.9",trail:"https://www.alltrails.com/en-gb/trail/england/surrey/box-hill-and-mickleham-circular",note:"About 3 hours over Box Hill, finishing with lunch at The King William IV in Mickleham."},
+  {id:"apr25",kind:"hike",title:"Ivinghoe Beacon Loop",date:"2025-04-26",place:"Pitstone Hill, Tring",dist:"11.1",trail:"https://www.alltrails.com/en-gb/trail/england/bedfordshire/ivinghoe-beacon-loop",note:"About 3.5 hours up to Ivinghoe Beacon, finishing with lunch at The Grand Junction Arms."},
+  {id:"jan26",kind:"hike",title:"Deacons Hill and Pegsdon Hills Circular",date:"2026-01-17",place:"Pegsdon, near Hitchin",dist:"4.8",note:"About 2 hours, finishing with lunch at the Green Man."},
+  {id:"feb26",kind:"hike",title:"Five Hundred Acre Wood Circular",date:"2026-02-21",place:"Ashdown Forest, East Sussex",dist:"8",note:"About 3 hours from Gills Lap, finishing with lunch at The Hatch Inn."},
+  {id:"mar26",kind:"hike",title:"Kennet and Avon Canal and Bull's Lock Circular",date:"2026-03-14",place:"Thatcham, Berkshire",dist:"9.2",note:"About 3 hours along the canal, finishing with lunch at The Swan."},
+  {id:"apr26",kind:"hike",title:"Limpsfield Loop",date:"2026-04-18",place:"Limpsfield Chart, Surrey",dist:"7.9",note:"About 3.5 hours, finishing with lunch at The Carpenters Arms."},
+  {id:"may26",kind:"hike",title:"Balcombe and Ardingly Reservoir Extended Circular",date:"2026-05-02",place:"Balcombe, West Sussex",dist:"11.9",note:"About 4.5 hours around Ardingly Reservoir, finishing with lunch at The Half Moon Inn."},
+  {id:"jun26",kind:"hike",title:"Glynde to Lewes",date:"2026-06-14",place:"Lewes, East Sussex",dist:"11.8",note:"Up to 5 hours with the option to cut it in half, starting with coffee at Carrafe and finishing with lunch at The Trevor Arms."},
+  {id:"jul26",kind:"hike",title:"Brockenhurst and the Tall Trees Trail Circular",date:"2026-07-04",place:"New Forest, Hampshire",dist:"15.4",note:"About 4.5 hours through the New Forest, with a bring-your-own picnic halfway."},
+  {id:"aug26",kind:"hike",title:"Lullingstone Circular x Undefinables",date:"2026-08-16",place:"Lullingstone Country Park, Kent",dist:"10.8",trail:"https://www.alltrails.com/en-gb/trail/england/kent/lullingstone-circular",note:"A joint hike with the Undefinables community, finishing with lunch at The Bo Peep."},
+  {id:"sep26",kind:"hike",title:"The Crashed Plane and Higher Shelf Stones Circular",date:"2026-09-26",place:"Snake Pass, Peak District",dist:"6.1",note:"About 2.5 hours up to the plane wreck on Higher Shelf Stones, then food at the Norfolk Arms in Glossop."},
+  {id:"oct26",kind:"hike",title:"Box Hill and Denbies Vineyard Circular",date:"2026-10-10",place:"Box Hill, Surrey",dist:"6.9",note:"About 3.5 hours over Box Hill and past Denbies vineyard, finishing with lunch at The Stepping Stones."},
+  {id:"nov26",kind:"hike",title:"Shere, North Downs and Gomshall Circular",date:"2026-11-14",place:"Gomshall, Surrey",dist:"9",note:"About 4 hours via Shere and the North Downs, finishing with lunch at The Gomshall Mill."},
+  {id:"dec26",kind:"hike",title:"Oxshott and Esher Common Circular",date:"2026-12-06",place:"Oxshott, Surrey",dist:"9.7",status:"open",price:"£10",note:"About 3 hours, starting at Munch & Wiggles coffee shop and finishing with lunch at The Old Plough."},
+  {id:"wales26",kind:"retreat",title:"Wales women's retreat",date:"2026-10-15",label:"October 2026",place:"Wales",status:"soldout",note:"Our very first retreat: 15 women, big walks and long dinners. The reason there are more retreats in 2027."},
+  {id:"first24",kind:"hike",title:"The very first hike",date:"2024-01-15",label:"January 2024",place:"Where it all began",status:"soldout",note:"Han's New Year's resolution, and the start of the club."}
+];
+
+const PERKS = [
+  {brand:"Grace & Green",what:"20% off",detail:"Organic period care.",code:"HANSHIKECLUB"},
+  {brand:"Water-to-Go",what:"15% off",detail:"Filter water bottles, so you can refill from streams and taps on the trail."},
+  {brand:"Free period kits",what:"On hikes and retreats",detail:"A little kit so nobody gets caught out on the trail, thanks to our partners."},
+  {brand:"More on the way",what:"Small outdoor brands",detail:"I'm talking to kind, non-toxic outdoor brands about perks for 2027."}
+];
+
+const MERCH = [
+  {id:"stickers",name:"Hand-drawn sticker pack",status:"Last round sold out",price:"Next drop TBC",art:"sticker"},
+  {id:"socks",name:"Han's Hike Club hiking socks",status:"Limited first edition · 25 pairs",price:"£15",art:"socks",buy:CONFIG.kofiShop},
+  {id:"tee",name:"Sticker back-print tee",status:"Coming soon",price:"Price TBC",art:"tee",sizes:["XS","S","M","L","XL","XXL"]}
+];
+
+/* ---------- helpers ---------- */
+const $ = (s,el=document)=>el.querySelector(s);
+const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const today = new Date(); today.setHours(0,0,0,0);
+const fmt = d => new Date(d+"T12:00:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
+const STATUS = {open:["open","Booking open"],soon:["soon","Details soon"],soldout:["soldout","Sold out"]};
+
+function applyConfig(){
+  $$("[data-cfg-href]").forEach(a=>{
+    const v = CONFIG[a.dataset.cfgHref];
+    if(v){a.href=v;a.target="_blank";a.rel="noopener"} else {a.href="#community"}
+  });
+  $$("[data-cfg-text]").forEach(el=>el.textContent=CONFIG[el.dataset.cfgText]||"");
+}
+
+/* ---------- state ---------- */
+let hikes = DEFAULT_HIKES.slice();
+let db=null, user=null, isOwner=false, myId=null;
+
+function isPast(h){return new Date(h.date+"T23:59:00") < today}
+function bookLink(h){return h.book || (h.date >= "2027-01-01" ? (CONFIG.cliq || "#community") : CONFIG.kofi)}
+
+function hikeCard(h,past){
+  const st = past ? ["done", h.kind==="retreat"?"Completed":"Walked"] : (STATUS[h.status]||STATUS.soon);
+  const book = bookLink(h);
+  const meta = [
+    h.place && `<span>${pin()} ${esc(h.place)}</span>`,
+    h.dist && `<span>${esc(h.dist)} km</span>`,
+    h.price && !past && `<span>${esc(h.price)}</span>`
+  ].filter(Boolean).join("");
+  let actions = "";
+  if(!past && h.status==="open") actions += `<a class="btn small way" href="${esc(book)}" target="_blank" rel="noopener">Book your place</a>`;
+  if(!past && h.status==="soon") actions += `<a class="btn small ghost" href="#community">Get notified in WhatsApp</a>`;
+  if(h.trail) actions += `<a class="btn small ghost" href="${esc(h.trail)}" target="_blank" rel="noopener">Route on AllTrails</a>`;
+  return `<article class="card">
+    <div class="when"><span class="date">${esc(h.label||fmt(h.date))}</span><span class="pill ${st[0]}">${st[1]}</span></div>
+    <span class="kind">${esc(h.kind)}</span>
+    <h3>${esc(h.title)}</h3>
+    ${meta?`<div class="meta">${meta}</div>`:""}
+    ${h.note?`<p>${esc(h.note)}</p>`:""}
+    ${actions?`<div class="actions">${actions}</div>`:""}
+  </article>`;
+}
+function pin(){return `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 22s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>`}
+
+function retreatCard(h){
+  const d = new Date(h.date+"T12:00:00");
+  const past = isPast(h);
+  const st = past?["done","Completed"]:(STATUS[h.status]||STATUS.soon);
+  const book = bookLink(h);
+  return `<article class="card retreat">
+    <div class="stamp"><div><small>${d.toLocaleDateString("en-GB",{month:"short"})}</small><b>${d.getFullYear()}</b></div></div>
+    <div style="display:grid;gap:10px">
+      <div class="when"><span class="date">${esc(h.label||fmt(h.date))}</span><span class="pill ${st[0]}">${st[1]}</span></div>
+      <h3>${esc(h.title)}</h3>
+      ${h.place?`<div class="meta"><span>${pin()} ${esc(h.place)}</span>${h.price?`<span>${esc(h.price)}</span>`:""}</div>`:""}
+      ${h.note?`<p>${esc(h.note)}</p>`:""}
+      ${!past && h.status==="open"?`<div class="actions"><a class="btn small way" href="${esc(book)}" target="_blank" rel="noopener">Book your place</a></div>`:""}
+      ${!past && h.status==="soon"?`<div class="actions"><a class="btn small ghost" href="#community">Hear first in WhatsApp</a></div>`:""}
+    </div>
+  </article>`;
+}
+
+function renderHikes(){
+  const sorted = hikes.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const up = sorted.filter(h=>!isPast(h) && h.kind!=="retreat");
+  const upAll = sorted.filter(h=>!isPast(h));
+  const past = sorted.filter(isPast).reverse();
+  const ret = sorted.filter(h=>h.kind==="retreat");
+  ret.sort((a,b)=>(isPast(a)-isPast(b)) || (isPast(a)? b.date.localeCompare(a.date) : a.date.localeCompare(b.date)));
+  // Upcoming shows hikes + socials, plus the next retreat as a teaser
+  const nextRetreat = upAll.find(h=>h.kind==="retreat");
+  const upList = nextRetreat ? up.concat([nextRetreat]) : up;
+  $("#upcomingList").innerHTML = upList.length ? upList.map(h=>hikeCard(h,false)).join("") : `<div class="empty">The next hike is being planned. Watch WhatsApp Announcements.</div>`;
+  $("#pastList").innerHTML = past.length ? past.map(h=>hikeCard(h,true)).join("") : `<div class="empty">No past hikes added yet.</div>`;
+  $("#retreatList").innerHTML = ret.length ? ret.map(retreatCard).join("") : `<div class="empty">Retreat dates coming soon.</div>`;
+  if(isOwner) renderEditList();
+}
+
+function renderPerks(){
+  $("#perkList").innerHTML = PERKS.map(p=>`<article class="card"><span class="price" style="font-family:var(--display);font-weight:800;font-size:30px;color:var(--moss)">${esc(p.what)}</span><h3>${esc(p.brand)}</h3><p>${esc(p.detail)}</p>${p.code?`<div class="actions"><span style="font:700 16px var(--body);letter-spacing:.06em;padding:9px 14px;border:2px dashed var(--waymark);border-radius:10px">Code: ${esc(p.code)}</span><button class="btn small ghost" type="button" data-code="${esc(p.code)}">Copy code</button></div>`:""}</article>`).join("");
+  $$("[data-code]").forEach(b=>b.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(b.dataset.code);b.textContent="Copied"}catch(e){b.textContent="Copy didn't work"}}));
+}
+
+const ART = {
+  sticker:`<svg width="120" height="120" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="50" fill="var(--waymark)"/><circle cx="60" cy="60" r="50" fill="none" stroke="var(--ink)" stroke-width="3" stroke-dasharray="4 5"/><path d="M24 78 46 44l12 18 10-12 28 28z" fill="var(--moss)"/><text x="60" y="36" text-anchor="middle" font-family="Caveat" font-size="17" fill="#1A1A10">Han's Hike Club</text></svg>`,
+  socks:`<svg width="120" height="120" viewBox="0 0 120 120" aria-hidden="true"><path d="M44 14h28v52l-6 14c-4 10-14 22-30 22H26c-8 0-12-10-6-16l18-14c4-3 6-8 6-12z" fill="var(--moss)"/><rect x="44" y="14" width="28" height="12" fill="var(--waymark)"/><rect x="44" y="30" width="28" height="4" fill="var(--waymark)"/></svg>`,
+  tee:`<svg width="130" height="120" viewBox="0 0 130 120" aria-hidden="true"><path d="M40 14 22 22 8 48l18 8 6-10v64h66V46l6 10 18-8-14-26-18-8c-4 8-12 12-25 12S44 22 40 14z" fill="var(--ink)"/><circle cx="65" cy="66" r="18" fill="var(--waymark)"/><path d="M52 74l8-12 5 7 4-5 9 10z" fill="var(--moss)"/></svg>`
+};
+function renderShop(){
+  $("#shopList").innerHTML = MERCH.map(m=>`<article class="card prod" data-id="${m.id}">
+    <div class="swatch">${ART[m.art]}</div>
+    <div class="when"><span class="kind">${esc(m.status)}</span><span class="price">${esc(m.price)}</span></div>
+    <h3>${esc(m.name)}</h3>
+    ${m.sizes?`<label for="sz-${m.id}">Size I'd want<select id="sz-${m.id}">${m.sizes.map(s=>`<option>${s}</option>`).join("")}</select></label>`:""}
+    <div class="actions">${m.buy?`<a class="btn small way" href="${esc(m.buy)}" target="_blank" rel="noopener">Buy now</a>`:`<button class="btn small" type="button" data-merch="${m.id}">Keep me posted</button>`}</div>
+    <div class="status" role="status"></div>
+  </article>`).join("");
+}
+
+/* ---------- routing ---------- */
+const VIEWS = ["home","hikes","retreats","past","perks","shop","community","out-of-office","how","say","hans-tools"];
+function route(){
+  let v = (location.hash||"#home").slice(1);
+  if(!VIEWS.includes(v)) v="home";
+  if(v==="hans-tools" && !isOwner) v="home";
+  $$(".view").forEach(s=>s.classList.toggle("on", s.dataset.views.split(" ").includes(v)));
+  $$("[data-only]").forEach(el=>el.hidden = el.dataset.only!==v);
+  $$("#nav a").forEach(a=>{ if(a.getAttribute("href")==="#"+v || (v==="home"&&a.getAttribute("href")==="#hikes")) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
+  $("#hero").hidden = v!=="home";
+  if(v!=="home") window.scrollTo({top:0});
+}
+addEventListener("hashchange",route);
+
+/* ---------- forms ---------- */
+function showForm(name){
+  $$(".choice[data-form]").forEach(b=>{b.setAttribute("aria-pressed", b.dataset.form===name); $(".go",b).textContent = b.dataset.form===name ? "Form open below" : "Open the form";});
+  $$("#v-say form.box[data-type]").forEach(f=>f.hidden = f.dataset.type!==name);
+  const f = $("#f-"+name);
+  if(f){ f.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"}); }
+}
+$$(".choice[data-form]").forEach(b=>b.addEventListener("click",()=>showForm(b.dataset.form)));
+document.addEventListener("click",e=>{const a=e.target.closest("a[data-tab]"); if(a) setTimeout(()=>showForm(a.dataset.tab),0)});
+$("#fb-anon").addEventListener("change",e=>$("#fb-name-wrap").hidden=e.target.checked);
+
+const LABEL = {suggest:"Hike/retreat idea",collab:"Collab idea",feedback:"Feedback",merch:"Merch interest",corporate:"Out of Office enquiry"};
+
+async function saveEntry(entry){
+  if(CONFIG.web3formsKey){
+    const fields = {
+      access_key: CONFIG.web3formsKey,
+      subject: `Han's Hike Club website: ${LABEL[entry.type]}${entry.kind ? " · " + entry.kind : ""}`,
+      from_name: "Han's Hike Club website",
+      "Type": LABEL[entry.type]
+    };
+    const NM = entry.type==="corporate" ? {kind:"Team size",where:"Company",link:"Preferred dates"} : {kind:"Category",where:"Where / who",link:"Link"};
+    if(entry.kind) fields[NM.kind] = entry.kind;
+    if(entry.where) fields[NM.where] = entry.where;
+    if(entry.link) fields[NM.link] = entry.link;
+    if(entry.size) fields["Size"] = entry.size;
+    if(entry.message) fields["Message"] = entry.message;
+    fields["From"] = entry.anon ? "Anonymous" : (entry.name || "Not given");
+    if(entry.contact) fields["Contact"] = entry.contact;
+    if(entry.contact && /@/.test(entry.contact)) fields.replyto = entry.contact;
+    const res = await fetch("https://api.web3forms.com/submit",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(fields)});
+    const out = await res.json().catch(()=>({}));
+    if(!res.ok || out.success===false) throw new Error("send-failed");
+    return;
+  }
+  if(!db || !myId) throw new Error("no-db");
+  const ref = db.doc("inbox/"+myId);
+  let cur = null;
+  try{ const s = await ref.get(); cur = s && typeof s.data==="function" ? s.data() : s; }catch(e){ cur=null }
+  const entries = (cur && Array.isArray(cur.entries)) ? cur.entries.slice() : [];
+  entries.push(entry);
+  await ref.set({uid:myId, entries, updated:Date.now()});
+}
+
+function asText(entry){
+  return [`Han's Hike Club · ${LABEL[entry.type]}`, entry.kind, entry.where, entry.link, entry.message, entry.size&&("Size: "+entry.size), entry.name&&("From: "+entry.name), entry.contact&&("Contact: "+entry.contact)].filter(Boolean).join("\n");
+}
+
+function showStatus(box, ok, entry){
+  box.className = "status show " + (ok?"ok":"fallback");
+  if(ok){ box.textContent = "Thank you! That's landed with Han."; return; }
+  const text = asText(entry);
+  box.innerHTML = `<b>That didn't send.</b> Please try again, or send it on WhatsApp or by email to ${esc(CONFIG.email)}. It's all written out for you.
+    <div class="acts"><a class="btn small way" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(text)}">Send on WhatsApp</a><button type="button" class="btn small ghost copy">Copy message</button></div>`;
+  $(".copy",box).addEventListener("click",async ev=>{try{await navigator.clipboard.writeText(text);ev.target.textContent="Copied"}catch(e){ev.target.textContent="Copy didn't work, select the text above"}});
+}
+
+$$("form.box[data-type]").forEach(f=>f.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const fd = new FormData(f);
+  const entry = {type:f.dataset.type, at:Date.now()};
+  ["kind","where","link","message","name","contact"].forEach(k=>{const v=(fd.get(k)||"").toString().trim(); if(v) entry[k]=v});
+  if(f.dataset.type==="feedback" && fd.get("anon")){ delete entry.name; entry.anon=true; }
+  const btn = $("button[type=submit]",f); btn.disabled=true;
+  let ok=false; try{ await saveEntry(entry); ok=true }catch(err){ ok=false }
+  btn.disabled=false;
+  showStatus($(".status",f), ok, entry);
+  if(ok) f.reset(), $("#fb-name-wrap").hidden=true;
+}));
+
+document.addEventListener("click",async e=>{
+  const b = e.target.closest("[data-merch]"); if(!b) return;
+  const card = b.closest(".prod"); const m = MERCH.find(x=>x.id===b.dataset.merch);
+  const sz = $("select",card);
+  const entry = {type:"merch", at:Date.now(), kind:m.name, size: sz?sz.value:undefined};
+  b.disabled=true; let ok=false; try{await saveEntry(entry); ok=true}catch(err){}
+  b.disabled=false;
+  const box=$(".status",card);
+  if(ok){box.className="status show ok"; box.textContent="You're on the list. I'll message you when the drop opens."; b.textContent="On the list";}
+  else showStatus(box,false,{...entry,message:"Please keep me posted about this merch drop."});
+});
+
+/* ---------- owner tools ---------- */
+$$("[data-otab]").forEach(b=>b.addEventListener("click",()=>{
+  $$("[data-otab]").forEach(x=>x.setAttribute("aria-selected",x===b));
+  $("#o-inbox").hidden = b.dataset.otab!=="inbox";
+  $("#o-hikes").hidden = b.dataset.otab!=="hikes";
+}));
+let inboxAll=[], inboxFilter="all";
+$$("#inboxFilter button").forEach(b=>b.addEventListener("click",()=>{
+  inboxFilter=b.dataset.f; $$("#inboxFilter button").forEach(x=>x.setAttribute("aria-selected",x===b)); renderInbox();
+}));
+function normDocs(res){
+  if(!res) return [];
+  const arr = Array.isArray(res) ? res : (res.docs || []);
+  return arr.map(d=> typeof d.data==="function" ? {id:d.id, ...d.data()} : d);
+}
+async function renderInbox(){
+  const list=$("#inboxList");
+  const items = inboxAll.filter(x=>inboxFilter==="all"||x.type===inboxFilter).sort((a,b)=>b.at-a.at);
+  if(!items.length){ list.innerHTML=`<div class="empty">Nothing here yet. Share the site with members and their ideas will appear here.</div>`; return; }
+  let names={};
+  try{ const ids=[...new Set(items.filter(i=>!i.anon).map(i=>i.uid))]; if(user && ids.length) names = await user.profiles(ids) || {}; }catch(e){}
+  list.innerHTML = items.map(i=>{
+    const who = i.anon ? "Anonymous" : (i.name || (names[i.uid] && names[i.uid].name) || "A member");
+    return `<div class="msg"><div class="top"><span class="chip ${i.type}">${LABEL[i.type]}</span><b style="color:var(--ink)">${esc(who)}</b><span>${new Date(i.at).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</span></div>
+      ${[i.kind,i.where,i.size&&("Size "+i.size)].filter(Boolean).map(x=>`<div style="font-weight:700">${esc(x)}</div>`).join("")}
+      ${i.message?`<p>${esc(i.message)}</p>`:""}
+      ${i.link?`<div>${esc(i.link)}</div>`:""}
+      ${i.contact?`<div style="color:var(--muted);font-size:14px">Contact: ${esc(i.contact)}</div>`:""}
+    </div>`}).join("");
+}
+function watchInbox(){
+  const timer = setTimeout(()=>{ if(!inboxAll.length) $("#inboxList").innerHTML=`<div class="empty">Your inbox is empty, or it took too long to load. Try opening the page again later.</div>` },10000);
+  try{
+    db.collection("inbox").onSnapshot(res=>{
+      clearTimeout(timer);
+      inboxAll = normDocs(res).flatMap(d=>(d.entries||[]).map(en=>({...en, uid:d.uid||d.id})));
+      renderInbox();
+    }, err=>{ clearTimeout(timer); $("#inboxList").innerHTML=`<div class="empty">Couldn't load the inbox. Reload the page to try again.</div>` });
+  }catch(e){ clearTimeout(timer) }
+}
+
+function renderEditList(){
+  const sorted = hikes.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  $("#editList").innerHTML = sorted.map(h=>`<div class="edit-row"><div><div class="t">${esc(h.title)}</div><div class="s">${esc(h.label||fmt(h.date))} · ${esc(h.kind)} · ${isPast(h)?"Past":(STATUS[h.status]||STATUS.soon)[1]}</div></div>
+    <div style="display:flex;gap:8px"><button class="btn small ghost" type="button" data-edit="${h.id}">Edit</button><button class="btn small ghost" type="button" data-del="${h.id}">Remove</button></div></div>`).join("");
+}
+const F = id=>$("#"+id);
+function fillForm(h){
+  F("h-id").value=h?.id||""; F("h-title").value=h?.title||""; F("h-kind").value=h?.kind||"hike";
+  F("h-date").value=h?.date||""; F("h-label").value=h?.label||""; F("h-place").value=h?.place||"";
+  F("h-status").value=h?.status||"open"; F("h-dist").value=h?.dist||""; F("h-price").value=h?.price||(h?"":"£10");
+  F("h-book").value=h?.book||""; F("h-trail").value=h?.trail||""; F("h-note").value=h?.note||"";
+  F("hikeFormTitle").textContent = h ? "Edit "+h.title : "Add a hike or retreat";
+}
+async function saveHikes(msg){
+  const box=F("h-status-msg");
+  try{ await db.doc("site/hikes").set({list:hikes, updated:Date.now()}); box.className="status show ok"; box.textContent=msg; }
+  catch(e){ box.className="status show fallback"; box.textContent="Couldn't save. Check you're signed in, then try again."; }
+}
+document.addEventListener("click",async e=>{
+  const ed=e.target.closest("[data-edit]"); const del=e.target.closest("[data-del]");
+  if(ed){ fillForm(hikes.find(h=>h.id===ed.dataset.edit)); F("hikeForm").scrollIntoView({behavior:"smooth"}); }
+  if(del){
+    if(del.dataset.armed!=="1"){ del.dataset.armed="1"; del.textContent="Tap again to remove"; setTimeout(()=>{del.dataset.armed="";del.textContent="Remove"},3000); return; }
+    hikes = hikes.filter(h=>h.id!==del.dataset.del); renderHikes(); await saveHikes("Removed.");
+  }
+});
+F("h-reset").addEventListener("click",()=>fillForm(null));
+F("hikeForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const h = {id:F("h-id").value||("h"+Date.now().toString(36)), title:F("h-title").value.trim(), kind:F("h-kind").value, date:F("h-date").value,
+    label:F("h-label").value.trim(), place:F("h-place").value.trim(), status:F("h-status").value, dist:F("h-dist").value.trim(),
+    price:F("h-price").value.trim(), book:F("h-book").value.trim(), trail:F("h-trail").value.trim(), note:F("h-note").value.trim()};
+  Object.keys(h).forEach(k=>{ if(h[k]==="") delete h[k] });
+  const i = hikes.findIndex(x=>x.id===h.id);
+  if(i>=0) hikes[i]=h; else hikes.push(h);
+  renderHikes(); fillForm(null); await saveHikes("Saved. It's live on the site.");
+});
+
+document.addEventListener("click",e=>{const a=e.target.closest("[data-jump]"); if(!a) return; e.preventDefault(); const t=document.getElementById(a.dataset.jump); if(t){t.scrollIntoView({behavior:"smooth",block:"start"}); setTimeout(()=>t.querySelector("input,select,textarea")?.focus({preventScroll:true}),400);}});
+
+/* ---------- boot ---------- */
+applyConfig(); renderHikes(); renderPerks(); renderShop(); route();
+
+(async()=>{
+  try{ user = await window.claude?.use?.("user"); }catch(e){ user=null }
+  try{ db = await window.claude?.use?.("db"); }catch(e){ db=null }
+  try{ isOwner = !!(user && user.isOwner && await user.isOwner()); }catch(e){ isOwner=false }
+  try{ myId = user && user.id ? await user.id() : null; }catch(e){ myId=null }
+  $("#ownerLink").hidden = !isOwner;
+  if(db){
+    try{
+      db.doc("site/hikes").onSnapshot(s=>{
+        const d = s && typeof s.data==="function" ? s.data() : s;
+        if(d && Array.isArray(d.list) && d.list.length){ hikes=d.list; renderHikes(); }
+      },()=>{});
+    }catch(e){}
+    if(isOwner){ watchInbox(); renderEditList(); }
+  }
+  route();
+})();
+
+/* ---------- contour map hero ---------- */
+(function(){
+  const cv=$("#contours"); if(!cv) return; const ctx=cv.getContext("2d");
+  let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
+  const G=64, grid=[...Array(G*G)].map(rnd);
+  const sm=t=>t*t*(3-2*t);
+  function vn(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;
+    const g=(i,j)=>grid[((j%G+G)%G)*G+((i%G+G)%G)];
+    const a=g(xi,yi),b=g(xi+1,yi),c=g(xi,yi+1),d=g(xi+1,yi+1),u=sm(xf),v=sm(yf);
+    return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;}
+  const f=(x,y)=>vn(x/260,y/260)*.68+vn(x/110+9,y/110+3)*.32;
+  const SEG={1:[[3,2]],2:[[2,1]],3:[[3,1]],4:[[0,1]],5:[[3,0],[2,1]],6:[[0,2]],7:[[3,0]],8:[[3,0]],9:[[0,2]],10:[[3,2],[0,1]],11:[[0,1]],12:[[3,1]],13:[[2,1]],14:[[3,2]]};
+  function draw(){
+    const r=cv.getBoundingClientRect(), dpr=Math.min(2,devicePixelRatio||1);
+    if(!r.width) return;
+    cv.width=r.width*dpr; cv.height=r.height*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    const cs=getComputedStyle(document.documentElement);
+    const c1=cs.getPropertyValue("--contour").trim(), c2=cs.getPropertyValue("--contour-index").trim();
+    ctx.clearRect(0,0,r.width,r.height);
+    const st=12, cols=Math.ceil(r.width/st)+1, rows=Math.ceil(r.height/st)+1;
+    const V=[]; for(let j=0;j<=rows;j++){V[j]=[];for(let i=0;i<=cols;i++)V[j][i]=f(i*st,j*st)}
+    let n=0;
+    for(let L=.18;L<.86;L+=.035,n++){
+      ctx.beginPath(); ctx.strokeStyle = n%5===0?c2:c1; ctx.lineWidth = n%5===0?1.5:.8;
+      for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){
+        const tl=V[j][i],tr=V[j][i+1],br=V[j+1][i+1],bl=V[j+1][i];
+        const k=(tl>=L?8:0)|(tr>=L?4:0)|(br>=L?2:0)|(bl>=L?1:0); const s=SEG[k]; if(!s) continue;
+        const x0=i*st,y0=j*st,x1=x0+st,y1=y0+st, lp=(a,b)=>(L-a)/(b-a||1e-9);
+        const P=[[x0+st*lp(tl,tr),y0],[x1,y0+st*lp(tr,br)],[x0+st*lp(bl,br),y1],[x0,y0+st*lp(tl,bl)]];
+        s.forEach(([a,b])=>{ctx.moveTo(P[a][0],P[a][1]);ctx.lineTo(P[b][0],P[b][1])});
+      }
+      ctx.stroke();
+    }
+    // a dashed public footpath across the sheet
+    ctx.setLineDash([7,6]); ctx.lineWidth=2.2; ctx.strokeStyle=cs.getPropertyValue("--waymark").trim();
+    ctx.beginPath(); ctx.moveTo(-10,r.height*.82);
+    ctx.bezierCurveTo(r.width*.3,r.height*.95,r.width*.45,r.height*.35,r.width*.7,r.height*.5);
+    ctx.bezierCurveTo(r.width*.85,r.height*.58,r.width*.92,r.height*.2,r.width+10,r.height*.12); ctx.stroke(); ctx.setLineDash([]);
+  }
+  let t; const redo=()=>{clearTimeout(t);t=setTimeout(draw,80)};
+  addEventListener("resize",redo);
+  matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",redo);
+  new MutationObserver(redo).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+  document.fonts?.ready?.then(draw); draw();
+})();
+</script>
+</body>
+</html>
